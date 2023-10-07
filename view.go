@@ -35,7 +35,7 @@ func (m Model) View() string {
 		BorderForeground(lipgloss.Color("228")).
 		Bold(true).
 		Foreground(lipgloss.Color("#ff0000")).
-		Padding(1, 1)
+		Padding(0, 0)
 
 	cursorStyle := normalStyle.Copy().
 		BorderForeground(lipgloss.Color("86"))

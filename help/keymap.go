@@ -14,7 +14,7 @@ type keyMap struct {
 	Help       key.Binding
 	Enter      key.Binding
 	Reset      key.Binding
-	AI         key.Binding
+	AIMove     key.Binding
 	ToggleAI   key.Binding
 	Difficulty key.Binding
 	Quit       key.Binding
@@ -49,7 +49,7 @@ var keys = keyMap{
 		key.WithKeys("r"),
 		key.WithHelp("r", "reset game"),
 	),
-	AI: key.NewBinding(
+	AIMove: key.NewBinding(
 		key.WithKeys("a"),
 		key.WithHelp("a", "Single AI move"),
 	),

@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbletea"
 	"github.com/lrstanley/bubblezone"
+	"tic-tac-toe/ai"
 	"tic-tac-toe/board"
 )
 
@@ -20,38 +21,44 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.String() == "q" {
 			return m, tea.Quit
 		}
-
+		keys := m.help.Keys
 		switch {
-		case key.Matches(msg, m.help.Keys.Reset):
+		case key.Matches(msg, keys.Reset):
 			newModel := New()
 			newModel.Width = m.Width
 			newModel.Height = m.Height
 			return &newModel, nil
-		}
-		switch msg.Type {
-		case tea.KeyUp:
+		case key.Matches(msg, keys.Up):
 			m.Cursor.Col = max(m.Cursor.Col-1, 0)
-		case tea.KeyDown:
+		case key.Matches(msg, keys.Down):
 			m.Cursor.Col = min(m.Cursor.Col+1, 2)
-		case tea.KeyLeft:
+		case key.Matches(msg, keys.Left):
 			m.Cursor.Row = max(m.Cursor.Row-1, 0)
-		case tea.KeyRight:
+		case key.Matches(msg, keys.Right):
 			m.Cursor.Row = min(m.Cursor.Row+1, 2)
-		case tea.KeyEnter:
+		case key.Matches(msg, keys.Enter):
 			if m.checkWinner() {
 				return m, nil
 			}
 			if m.Board.Cells[m.Cursor.Col][m.Cursor.Row] == board.Empty {
 				m.Board.Cells[m.Cursor.Col][m.Cursor.Row] = m.Current
-				if m.Current == board.PlayerX {
-					m.Current = board.PlayerO
-				} else {
-					m.Current = board.PlayerX
-				}
+				m.swapPlayer()
 			} else {
 				m.invalidMove = true
 				return m, nil
 			}
+			if m.checkWinner() {
+				return m, nil
+			}
+		case key.Matches(msg, keys.Difficulty):
+			m.ai.ChangeDifficulty(ai.Difficulty((int(m.ai.Difficulty) + 1) % 5))
+		case key.Matches(msg, keys.AIMove):
+			if m.checkWinner() {
+				return m, nil
+			}
+			x, y := m.ai.Move(m.Board)
+			m.Board.Cells[x][y] = m.Current
+			m.swapPlayer()
 			if m.checkWinner() {
 				return m, nil
 			}
@@ -74,11 +81,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			if m.Board.Cells[m.Cursor.Col][m.Cursor.Row] == board.Empty {
 				m.Board.Cells[m.Cursor.Col][m.Cursor.Row] = m.Current
-				if m.Current == board.PlayerX {
-					m.Current = board.PlayerO
-				} else {
-					m.Current = board.PlayerX
-				}
+				m.swapPlayer()
 			} else {
 				m.invalidMove = true
 				return m, nil
@@ -89,6 +92,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 	return m, nil
+}
+
+func (m *Model) swapPlayer() {
+	if m.Current == board.PlayerX {
+		m.Current = board.PlayerO
+	} else {
+		m.Current = board.PlayerX
+	}
 }
 
 func (m *Model) checkWinner() bool {
