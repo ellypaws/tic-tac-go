@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/lrstanley/bubblezone"
 	"log"
+	"math/rand"
 	"strings"
 	"tic-tac-toe/board"
+	"tic-tac-toe/help"
 )
 
 type Model struct {
@@ -17,6 +20,7 @@ type Model struct {
 	ShowError     bool
 	Cursor        struct{ Row, Col int }
 	Width, Height int
+	help          help.Model
 }
 
 func (m Model) Init() tea.Cmd {
@@ -36,6 +40,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 
+		switch {
+		case key.Matches(msg, m.help.Keys.Reset):
+			newModel := New()
+			newModel.Width = m.Width
+			newModel.Height = m.Height
+			return &newModel, nil
+		}
 		switch msg.Type {
 		case tea.KeyUp:
 			m.Cursor.Col = max(m.Cursor.Col-1, 0)
@@ -58,6 +69,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 		}
+		m.help, _ = m.help.Update(msg)
 		return m, nil
 	case tea.MouseMsg:
 		for row := 0; row < 3; row++ {
@@ -170,8 +182,9 @@ func (m Model) View() string {
 		m.Width, m.Height,
 		lipgloss.Center, lipgloss.Center,
 		lipgloss.JoinVertical(
-			lipgloss.Left,
+			lipgloss.Center,
 			out.String(),
+			m.help.View(),
 		),
 		lipgloss.WithWhitespaceChars("⭒"),
 		lipgloss.WithWhitespaceForeground(lipgloss.Color("#303033")),
@@ -180,14 +193,25 @@ func (m Model) View() string {
 	return zone.Scan(block)
 }
 
+func New() Model {
+	var player board.Cell
+	start := rand.Int() % 2
+	if start == 0 {
+		player = board.PlayerX
+	} else {
+		player = board.PlayerO
+	}
+	return Model{
+		Board:   board.NewBoard(),
+		Current: player,
+		help:    help.New(),
+	}
+}
+
 func main() {
 	zone.NewGlobal()
-	m := Model{
-		Board:   board.NewBoard(),
-		Current: board.PlayerX,
-	}
 	p := tea.NewProgram(
-		&m,
+		New(),
 		tea.WithAltScreen(),
 		//tea.WithMouseCellMotion(),
 		tea.WithMouseAllMotion(),
