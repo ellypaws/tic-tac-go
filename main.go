@@ -85,24 +85,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch msg.Type {
 		case tea.KeyUp:
-			if m.Cursor.Y > 0 {
-				m.Cursor.Y--
-			}
+			m.Cursor.Col = max(m.Cursor.Col-1, 0)
 		case tea.KeyDown:
-			if m.Cursor.Y < 2 {
-				m.Cursor.Y++
-			}
+			m.Cursor.Col = min(m.Cursor.Col+1, 2)
 		case tea.KeyLeft:
-			if m.Cursor.X > 0 {
-				m.Cursor.X--
-			}
+			m.Cursor.Row = max(m.Cursor.Row-1, 0)
 		case tea.KeyRight:
-			if m.Cursor.X < 2 {
-				m.Cursor.X++
-			}
+			m.Cursor.Row = min(m.Cursor.Row+1, 2)
 		case tea.KeyEnter:
-			if m.Board.Cells[m.Cursor.Y][m.Cursor.X] == Empty {
-				m.Board.Cells[m.Cursor.Y][m.Cursor.X] = m.Current
+			if m.Board.Cells[m.Cursor.Col][m.Cursor.Row] == Empty {
+				m.Board.Cells[m.Cursor.Col][m.Cursor.Row] = m.Current
 				if m.Current == PlayerX {
 					m.Current = PlayerO
 				} else {
@@ -160,38 +152,42 @@ const (
 func (m Model) View() string {
 	var out strings.Builder
 
-	cursorStyle := lipgloss.NewStyle().Background(lipgloss.Color("#C44358"))
+	normalStyle := lipgloss.NewStyle().
+		BorderStyle(lipgloss.RoundedBorder()).
+		BorderForeground(lipgloss.Color("228")).
+		Bold(true).
+		Foreground(lipgloss.Color("#ff0000"))
 
-	for row := 0; row < 3; row++ {
-		for col := 0; col < 3; col++ {
-			zoneID := fmt.Sprintf("%d-%d", row, col)
+	cursorStyle := normalStyle.Copy().
+		BorderForeground(lipgloss.Color("86"))
 
-			var cell string
-			switch m.Board.Cells[row][col] {
+	out.WriteString(fmt.Sprintf("[%v]:[%v] {%v:%v}\n", m.Cursor.Row, m.Cursor.Col, m.Width, m.Height))
+
+	for col := 0; col < 3; col++ {
+		rowItems := []string{}
+		for row := 0; row < 3; row++ {
+			//zoneID := fmt.Sprintf("%d-%d", row, col)
+
+			var r = normalStyle.Render
+			if col == m.Cursor.Col && row == m.Cursor.Row {
+				r = cursorStyle.Render
+			}
+
+			var cell = r(EmptySymbol)
+			//
+			switch m.Board.Cells[col][row] {
 			case PlayerX:
-				cell = "X"
+				cell = r(XSymbol)
 			case PlayerO:
-				cell = "O"
-			default:
-				cell = " "
+				cell = r(OSymbol)
 			}
 
-			if row == m.Cursor.Y && col == m.Cursor.X {
-				cell = cursorStyle.Render(cell)
-			}
-
-			out.WriteString(zone.Mark(m.Board.Id+zoneID, cell))
-
-			if col < 2 {
-				out.WriteString("|")
-			}
+			cell = zone.Mark(m.Board.Id+fmt.Sprintf("%d-%d", row, col), cell)
+			rowItems = append(rowItems, cell)
 		}
-		if row < 2 {
-			out.WriteString("\n-+-+-\n")
-		}
+		out.WriteString(lipgloss.JoinHorizontal(0.1, rowItems...))
+		out.WriteString("\n")
 	}
-
-	out.WriteString("\n\n")
 
 	if m.GameOver {
 		winner := m.Board.Winner()
@@ -214,6 +210,17 @@ func (m Model) View() string {
 	if m.ShowError {
 		finalOut.WriteString("\nCell already taken!\n")
 	}
+
+	block := lipgloss.Place(
+		m.Width, m.Height,
+		lipgloss.Center, lipgloss.Center,
+		out.String(),
+		lipgloss.WithWhitespaceChars("    ⭒"),
+		lipgloss.WithWhitespaceForeground(lipgloss.Color("#757575")),
+	)
+	//block = lipgloss.PlaceVertical(m.Height, lipgloss.Center, block)
+	out.WriteString(block)
+	//out.WriteString("\n\n")
 
 	return finalOut.String()
 }
