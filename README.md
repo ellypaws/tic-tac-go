@@ -57,6 +57,8 @@ Keyboard Controls:
 Mouse Controls (BubbleZone):
 - Move your mouse cursor to select a cell.
 - Left-click to place your symbol in the selected cell.
+  
+<img src="https://go.dev/images/gophers/ladder.svg" width="48" alt="Go Gopher climbing a ladder." align="right">
 
 ## Todo
 
