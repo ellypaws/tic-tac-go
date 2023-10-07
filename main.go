@@ -110,6 +110,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 //	OSymbol     = " ⭕ "
 //)
 
+// Nerd Fonts
+//const (
+//	EmptySymbol = " "
+//	XSymbol     = "\uF467"
+//	OSymbol     = "\uEABC"
+//)
+
 const (
 	EmptySymbol = "   "
 	XSymbol     = " X "
@@ -123,7 +130,8 @@ func (m Model) View() string {
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("228")).
 		Bold(true).
-		Foreground(lipgloss.Color("#ff0000"))
+		Foreground(lipgloss.Color("#ff0000")).
+		Padding(1, 1)
 
 	cursorStyle := normalStyle.Copy().
 		BorderForeground(lipgloss.Color("86"))
@@ -186,7 +194,7 @@ func (m Model) View() string {
 			out.String(),
 			m.help.View(),
 		),
-		lipgloss.WithWhitespaceChars("⭒"),
+		lipgloss.WithWhitespaceChars("@"),
 		lipgloss.WithWhitespaceForeground(lipgloss.Color("#303033")),
 	)
 
