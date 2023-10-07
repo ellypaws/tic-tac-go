@@ -7,59 +7,12 @@ import (
 	"github.com/lrstanley/bubblezone"
 	"log"
 	"strings"
+	"tic-tac-toe/board"
 )
-
-const (
-	Empty = iota
-	PlayerX
-	PlayerO
-)
-
-type Cell int
-
-type Board struct {
-	Cells [3][3]Cell
-	Id    string
-}
-
-func NewBoard() *Board {
-	return &Board{
-		Id: zone.NewPrefix(),
-	}
-}
-
-func (b *Board) IsFull() bool {
-	for _, row := range b.Cells {
-		for _, cell := range row {
-			if cell == Empty {
-				return false
-			}
-		}
-	}
-	return true
-}
-
-func (b *Board) Winner() Cell {
-	for i := 0; i < 3; i++ {
-		if b.Cells[i][0] != Empty && b.Cells[i][0] == b.Cells[i][1] && b.Cells[i][0] == b.Cells[i][2] {
-			return b.Cells[i][0]
-		}
-		if b.Cells[0][i] != Empty && b.Cells[0][i] == b.Cells[1][i] && b.Cells[0][i] == b.Cells[2][i] {
-			return b.Cells[0][i]
-		}
-	}
-	if b.Cells[0][0] != Empty && b.Cells[0][0] == b.Cells[1][1] && b.Cells[0][0] == b.Cells[2][2] {
-		return b.Cells[0][0]
-	}
-	if b.Cells[0][2] != Empty && b.Cells[0][2] == b.Cells[1][1] && b.Cells[0][2] == b.Cells[2][0] {
-		return b.Cells[0][2]
-	}
-	return Empty
-}
 
 type Model struct {
-	Board         *Board
-	Current       Cell
+	Board         *board.Board
+	Current       board.Cell
 	GameOver      bool
 	ShowError     bool
 	Cursor        struct{ Row, Col int }
@@ -93,12 +46,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyRight:
 			m.Cursor.Row = min(m.Cursor.Row+1, 2)
 		case tea.KeyEnter:
-			if m.Board.Cells[m.Cursor.Col][m.Cursor.Row] == Empty {
+			if m.Board.Cells[m.Cursor.Col][m.Cursor.Row] == board.Empty {
 				m.Board.Cells[m.Cursor.Col][m.Cursor.Row] = m.Current
-				if m.Current == PlayerX {
-					m.Current = PlayerO
+				if m.Current == board.PlayerX {
+					m.Current = board.PlayerO
 				} else {
-					m.Current = PlayerX
+					m.Current = board.PlayerX
 				}
 			} else {
 				m.ShowError = true
@@ -117,17 +70,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		winner := m.Board.Winner()
-		if winner != Empty || m.Board.IsFull() {
+		if winner != board.Empty || m.Board.IsFull() {
 			m.GameOver = true
 			return m, nil
 		}
 		if msg.Type == tea.MouseLeft {
-			if m.Board.Cells[m.Cursor.Col][m.Cursor.Row] == Empty {
+			if m.Board.Cells[m.Cursor.Col][m.Cursor.Row] == board.Empty {
 				m.Board.Cells[m.Cursor.Col][m.Cursor.Row] = m.Current
-				if m.Current == PlayerX {
-					m.Current = PlayerO
+				if m.Current == board.PlayerX {
+					m.Current = board.PlayerO
 				} else {
-					m.Current = PlayerX
+					m.Current = board.PlayerX
 				}
 			} else {
 				m.ShowError = true
@@ -178,9 +131,9 @@ func (m Model) View() string {
 			var cell = r(EmptySymbol)
 			//
 			switch m.Board.Cells[col][row] {
-			case PlayerX:
+			case board.PlayerX:
 				cell = r(XSymbol)
-			case PlayerO:
+			case board.PlayerO:
 				cell = r(OSymbol)
 			}
 
@@ -194,15 +147,15 @@ func (m Model) View() string {
 	if m.GameOver {
 		winner := m.Board.Winner()
 		switch winner {
-		case PlayerX:
+		case board.PlayerX:
 			out.WriteString("Player X wins!\n")
-		case PlayerO:
+		case board.PlayerO:
 			out.WriteString("Player O wins!\n")
 		default:
 			out.WriteString("It's a draw!\n")
 		}
 	} else {
-		if m.Current == PlayerX {
+		if m.Current == board.PlayerX {
 			out.WriteString("Player X's turn\n")
 		} else {
 			out.WriteString("Player O's turn\n")
@@ -230,8 +183,8 @@ func (m Model) View() string {
 func main() {
 	zone.NewGlobal()
 	m := Model{
-		Board:   NewBoard(),
-		Current: PlayerX,
+		Board:   board.NewBoard(),
+		Current: board.PlayerX,
 	}
 	p := tea.NewProgram(
 		&m,

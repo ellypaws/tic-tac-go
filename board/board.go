@@ -1,96 +1,53 @@
 package board
 
 import (
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	zone "github.com/lrstanley/bubblezone"
-	"strconv"
+	"github.com/lrstanley/bubblezone"
 )
 
-// Constants representing player symbols and an empty cell
 const (
-	EmptySymbol = " "
-	XSymbol     = "❌"
-	OSymbol     = "⭕"
+	Empty = iota
+	PlayerX
+	PlayerO
 )
 
-// Cell represents each cell of the Tic Tac Toe board.
-type Cell struct {
-	Value string
-	ID    string
-}
+type Cell int
 
-// Board represents the Tic Tac Toe game board.
 type Board struct {
 	Cells [3][3]Cell
+	Id    string
 }
 
-// NewBoard initializes a new game board.
-func NewBoard() Board {
-	b := Board{}
-
-	for i := 0; i < 3; i++ {
-		for j := 0; j < 3; j++ {
-			id := strconv.Itoa(i) + "-" + strconv.Itoa(j)
-			b.Cells[i][j] = Cell{Value: EmptySymbol, ID: zone.Mark(id, "   ")}
-		}
+func NewBoard() *Board {
+	return &Board{
+		Id: zone.NewPrefix(),
 	}
-
-	return b
 }
 
-// View renders the game board as a string.
-func (b Board) View() string {
-	var view string
-
-	cellStyle := lipgloss.NewStyle().Width(5).Height(3).Border(lipgloss.NormalBorder())
-	dividerStyle := lipgloss.NewStyle().Width(17)
-
-	for i := 0; i < 3; i++ {
-		for j := 0; j < 3; j++ {
-			cell := b.Cells[i][j]
-			view += cellStyle.Render(cell.Value)
-
-			if j < 2 {
-				view += " "
-			}
-		}
-		if i < 2 {
-			view += "\n" + dividerStyle.Render("-+-+-") + "\n"
-		}
-	}
-
-	return view
-}
-
-// Update handles mouse input to update the board state.
-func (b Board) Update(msg tea.Msg) (Board, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.MouseMsg:
-		if msg.Type == tea.MouseLeft {
-			for i := 0; i < 3; i++ {
-				for j := 0; j < 3; j++ {
-					cell := &b.Cells[i][j]
-
-					if zone.Get(cell.ID).InBounds(msg) {
-						switch cell.Value {
-						case EmptySymbol:
-							cell.Value = XSymbol
-						case XSymbol:
-							cell.Value = OSymbol
-						default:
-							cell.Value = EmptySymbol
-						}
-						return b, nil
-					}
-				}
+func (b *Board) IsFull() bool {
+	for _, row := range b.Cells {
+		for _, cell := range row {
+			if cell == Empty {
+				return false
 			}
 		}
 	}
-	return b, nil
+	return true
 }
 
-// Init initializes the board model; currently a no-op.
-func (b Board) Init() tea.Cmd {
-	return nil
+func (b *Board) Winner() Cell {
+	for i := 0; i < 3; i++ {
+		if b.Cells[i][0] != Empty && b.Cells[i][0] == b.Cells[i][1] && b.Cells[i][0] == b.Cells[i][2] {
+			return b.Cells[i][0]
+		}
+		if b.Cells[0][i] != Empty && b.Cells[0][i] == b.Cells[1][i] && b.Cells[0][i] == b.Cells[2][i] {
+			return b.Cells[0][i]
+		}
+	}
+	if b.Cells[0][0] != Empty && b.Cells[0][0] == b.Cells[1][1] && b.Cells[0][0] == b.Cells[2][2] {
+		return b.Cells[0][0]
+	}
+	if b.Cells[0][2] != Empty && b.Cells[0][2] == b.Cells[1][1] && b.Cells[0][2] == b.Cells[2][0] {
+		return b.Cells[0][2]
+	}
+	return Empty
 }
