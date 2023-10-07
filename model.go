@@ -54,6 +54,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyRight:
 			m.Cursor.Row = min(m.Cursor.Row+1, 2)
 		case tea.KeyEnter:
+			if m.checkWinner() {
+				return m, nil
+			}
 			if m.Board.Cells[m.Cursor.Col][m.Cursor.Row] == board.Empty {
 				m.Board.Cells[m.Cursor.Col][m.Cursor.Row] = m.Current
 				if m.Current == board.PlayerX {
@@ -63,6 +66,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			} else {
 				m.invalidMove = true
+				return m, nil
+			}
+			if m.checkWinner() {
 				return m, nil
 			}
 		}
@@ -78,12 +84,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
-		winner := m.Board.Winner()
-		if winner != board.Empty || m.Board.IsFull() {
-			m.gameOver = true
-			return m, nil
-		}
 		if msg.Type == tea.MouseLeft {
+			if m.checkWinner() {
+				return m, nil
+			}
 			if m.Board.Cells[m.Cursor.Col][m.Cursor.Row] == board.Empty {
 				m.Board.Cells[m.Cursor.Col][m.Cursor.Row] = m.Current
 				if m.Current == board.PlayerX {
@@ -95,8 +99,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.invalidMove = true
 				return m, nil
 			}
+			if m.checkWinner() {
+				return m, nil
+			}
 		}
-		return m, nil
 	}
 	return m, nil
 }
@@ -118,6 +124,15 @@ const (
 	XSymbol     = " X "
 	OSymbol     = " O "
 )
+
+func (m *Model) checkWinner() bool {
+	winner := m.Board.Winner()
+	if winner != board.Empty || m.Board.IsFull() {
+		m.gameOver = true
+		return true
+	}
+	return false
+}
 
 func (m Model) View() string {
 	var out strings.Builder
