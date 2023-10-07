@@ -220,8 +220,8 @@ func (m Model) View() string {
 			lipgloss.Left,
 			out.String(),
 		),
-		lipgloss.WithWhitespaceChars("    ⭒"),
-		lipgloss.WithWhitespaceForeground(lipgloss.Color("#757575")),
+		lipgloss.WithWhitespaceChars("⭒"),
+		lipgloss.WithWhitespaceForeground(lipgloss.Color("#303033")),
 	)
 
 	return zone.Scan(block)
@@ -236,7 +236,7 @@ func main() {
 	p := tea.NewProgram(
 		&m,
 		tea.WithAltScreen(),
-		tea.WithMouseCellMotion(),
+		//tea.WithMouseCellMotion(),
 		tea.WithMouseAllMotion(),
 	)
 
