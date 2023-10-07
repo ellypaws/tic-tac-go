@@ -1,3 +1,6 @@
+Here's your README.md file with keys similar to the example you provided:
+
+```md
 # Tic-Tac-Toe Game
 
 This is a simple command-line Tic-Tac-Toe game implemented in Go using the Bubble Tea framework, along with BubbleZone for mouse controls. You can play the game in your terminal with your keyboard or mouse.
@@ -57,11 +60,23 @@ Keyboard Controls:
 Mouse Controls (BubbleZone):
 - Move your mouse cursor to select a cell.
 - Left-click to place your symbol in the selected cell.
-  
+
+### Keys
+
+| Key                                       | Action                        |
+|-------------------------------------------|-------------------------------|
+| <kbd>&#8592;</kbd> / <kbd>&#8594;</kbd>   | Move cursor horizontally      |
+| <kbd>&#8593;</kbd> / <kbd>&#8595;</kbd>   | Move cursor vertically        |
+| <kbd>Enter</kbd> / 🖱️                    | Place symbol in selected cell |
+| <kbd>Q</kbd>                              | Quit the game                 |
+
+
 <img src="https://go.dev/images/gophers/ladder.svg" width="48" alt="Go Gopher climbing a ladder." align="right">
 
 ## Todo
 
 - [ ] Implement AI for single-player mode
+- [ ] Difficulty levels for AI
 
 Enjoy the game and challenge your friends or the AI (coming soon) in this classic game of Tic-Tac-Toe!
+```
