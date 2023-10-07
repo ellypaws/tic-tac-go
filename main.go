@@ -203,12 +203,12 @@ func (m Model) View() string {
 		if m.Current == PlayerX {
 			out.WriteString("Player X's turn\n")
 		} else {
-			finalOut.WriteString("Player O's turn\n")
+			out.WriteString("Player O's turn\n")
 		}
 	}
 
 	if m.ShowError {
-		finalOut.WriteString("\nCell already taken!\n")
+		out.WriteString("\nCell already taken!\n")
 	}
 
 	block := lipgloss.Place(
@@ -222,7 +222,7 @@ func (m Model) View() string {
 	out.WriteString(block)
 	//out.WriteString("\n\n")
 
-	return finalOut.String()
+	return zone.Scan(out.String())
 }
 
 func main() {
