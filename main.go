@@ -107,7 +107,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 	case tea.MouseMsg:
-		msg.Y += 11
 		for row := 0; row < 3; row++ {
 			for col := 0; col < 3; col++ {
 				z := zone.Get(m.Board.Id + fmt.Sprintf("%d-%d", row, col))
@@ -217,13 +216,15 @@ func (m Model) View() string {
 	block := lipgloss.Place(
 		m.Width, m.Height,
 		lipgloss.Center, lipgloss.Center,
-		out.String(),
+		lipgloss.JoinVertical(
+			lipgloss.Left,
+			out.String(),
+		),
 		lipgloss.WithWhitespaceChars("    ⭒"),
 		lipgloss.WithWhitespaceForeground(lipgloss.Color("#757575")),
 	)
-	out.WriteString(block)
 
-	return zone.Scan(out.String())
+	return zone.Scan(block)
 }
 
 func main() {
