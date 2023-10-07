@@ -60,11 +60,12 @@ func (b *Board) Winner() Cell {
 }
 
 type Model struct {
-	Board     *Board
-	Current   Cell
-	GameOver  bool
-	ShowError bool
-	Cursor    struct{ X, Y int }
+	Board         *Board
+	Current       Cell
+	GameOver      bool
+	ShowError     bool
+	Cursor        struct{ Row, Col int }
+	Width, Height int
 }
 
 func (m Model) Init() tea.Cmd {
@@ -73,6 +74,10 @@ func (m Model) Init() tea.Cmd {
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.Width = msg.Width
+		m.Height = msg.Height
+		return m, nil
 	case tea.KeyMsg:
 		if msg.String() == "q" {
 			return m, tea.Quit
@@ -115,9 +120,42 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		return m, nil
+	case tea.MouseMsg:
+		if msg.Type == tea.MouseLeft {
+			for row := 0; row < 3; row++ {
+				for col := 0; col < 3; col++ {
+					cell := &m.Board.Cells[row][col]
+					if zone.Get(m.Board.Id + fmt.Sprintf("%d-%d", row, col)).InBounds(msg) {
+						if *cell == Empty {
+							*cell = m.Current
+							if m.Current == PlayerX {
+								m.Current = PlayerO
+							} else {
+								m.Current = PlayerX
+							}
+						} else {
+							m.ShowError = true
+							return m, nil
+						}
+					}
+				}
+			}
+		}
 	}
 	return m, nil
 }
+
+//const (
+//	EmptySymbol = "   "
+//	XSymbol     = " ❌ "
+//	OSymbol     = " ⭕ "
+//)
+
+const (
+	EmptySymbol = "   "
+	XSymbol     = " X "
+	OSymbol     = " O "
+)
 
 func (m Model) View() string {
 	var out strings.Builder
@@ -169,15 +207,15 @@ func (m Model) View() string {
 		if m.Current == PlayerX {
 			out.WriteString("Player X's turn\n")
 		} else {
-			out.WriteString("Player O's turn\n")
+			finalOut.WriteString("Player O's turn\n")
 		}
 	}
 
 	if m.ShowError {
-		out.WriteString("\nCell already taken!\n")
+		finalOut.WriteString("\nCell already taken!\n")
 	}
 
-	return out.String()
+	return finalOut.String()
 }
 
 func main() {
