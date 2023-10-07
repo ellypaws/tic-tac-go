@@ -1,115 +1,96 @@
 package board
 
 import (
-	"github.com/charmbracelet/bubbles/spinner"
-	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	zone "github.com/lrstanley/bubblezone"
 	"strconv"
 )
 
+// Constants representing player symbols and an empty cell
+const (
+	EmptySymbol = " "
+	XSymbol     = "❌"
+	OSymbol     = "⭕"
+)
+
+// Cell represents each cell of the Tic Tac Toe board.
+type Cell struct {
+	Value string
+	ID    string
+}
+
+// Board represents the Tic Tac Toe game board.
 type Board struct {
-	columns map[string]table.Model
-	spinner spinner.Model
+	Cells [3][3]Cell
 }
 
-var boardSymbol = map[string]string{
-	"X": "❌",
-	"O": "⭕",
-}
+// NewBoard initializes a new game board.
+func NewBoard() Board {
+	b := Board{}
 
-var focused = table.DefaultStyles()
-
-func NewCol(prefix int) table.Model {
-	columns := []table.Column{
-		{Title: "[ ]", Width: 6},
-	}
-
-	rows := []table.Row{
-		{"AGH"},
-		{"AGH"},
-		{"AGH"},
-	}
-
-	for row, _ := range rows {
-		for col, cell := range rows[row] {
-			rows[row][col] = zone.Mark(strconv.Itoa(prefix)+strconv.Itoa(row)+strconv.Itoa(col), cell)
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			id := strconv.Itoa(i) + "-" + strconv.Itoa(j)
+			b.Cells[i][j] = Cell{Value: EmptySymbol, ID: zone.Mark(id, "   ")}
 		}
 	}
 
-	newTable := table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(false),
-		table.WithHeight(len(rows)+2),
-	)
-
-	return newTable
+	return b
 }
 
-func NewBoard() Board {
-	focused = table.DefaultStyles()
-	focused.Header = focused.Header.
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
-		Bold(false)
-	focused.Selected = focused.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
-
-	newTable := make(map[string]table.Model)
-
-	for i := 0; i < 3; i++ {
-		newTable[strconv.Itoa(i)] = NewCol(i)
-	}
-
-	s := spinner.New()
-	s.Spinner = spinner.Dot
-
-	return Board{
-		columns: newTable,
-		spinner: s,
-	}
-}
-
+// View renders the game board as a string.
 func (b Board) View() string {
 	var view string
-	for _, col := range b.columns {
-		view += col.View()
+
+	cellStyle := lipgloss.NewStyle().Width(5).Height(3).Border(lipgloss.NormalBorder())
+	dividerStyle := lipgloss.NewStyle().Width(17)
+
+	for i := 0; i < 3; i++ {
+		for j := 0; j < 3; j++ {
+			cell := b.Cells[i][j]
+			view += cellStyle.Render(cell.Value)
+
+			if j < 2 {
+				view += " "
+			}
+		}
+		if i < 2 {
+			view += "\n" + dividerStyle.Render("-+-+-") + "\n"
+		}
 	}
+
 	return view
 }
 
-func (b Board) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
+// Update handles mouse input to update the board state.
+func (b Board) Update(msg tea.Msg) (Board, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		msg.Width -= 4
-		msg.Height -= 2
-		return b, nil
 	case tea.MouseMsg:
-		//if msg.Type == tea.MouseLeft {
-		//	for i := 0; i < 3; i++ {
-		//		for j := 0; j < 3; j++ {
-		//			if zone.Get(b.columns[i*3+j].Id).InBounds(msg) {
-		//				newCol, _ := b.columns[i*3+j].Update(msg)
-		//				b.columns[i*3+j] = newCol.(table.Model)
-		//				return b, nil
-		//			}
-		//		}
-		//	}
-		//}
+		if msg.Type == tea.MouseLeft {
+			for i := 0; i < 3; i++ {
+				for j := 0; j < 3; j++ {
+					cell := &b.Cells[i][j]
+
+					if zone.Get(cell.ID).InBounds(msg) {
+						switch cell.Value {
+						case EmptySymbol:
+							cell.Value = XSymbol
+						case XSymbol:
+							cell.Value = OSymbol
+						default:
+							cell.Value = EmptySymbol
+						}
+						return b, nil
+					}
+				}
+			}
+		}
 	}
-	for i, k := range b.columns {
-		newCol, _ := k.Update(msg)
-		b.columns[i] = newCol
-	}
-	return b, cmd
+	return b, nil
 }
 
+// Init initializes the board model; currently a no-op.
 func (b Board) Init() tea.Cmd {
 	return nil
 }
