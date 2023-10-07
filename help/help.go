@@ -40,7 +40,7 @@ func (k keyMap) FullHelp() [][]key.Binding {
 
 func (m Model) View() string {
 	helpView := m.help.View(m.Keys)
-	height := 8 - strings.Count(helpView, "\n")
+	height := 2 - strings.Count(helpView, "\n")
 
 	return "\n" + strings.Repeat("\n", height) + helpView
 }

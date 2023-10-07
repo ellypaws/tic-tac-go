@@ -11,7 +11,7 @@ const (
 	Easy Difficulty = iota
 	Medium
 	Hard
-	Max
+	Minimax
 	Neural
 )
 
@@ -41,7 +41,7 @@ func NewAI(difficulty Difficulty) *AI {
 		return &AI{Mover: GetRandomMover(), spinner: s}
 	case Medium, Hard:
 		return &AI{Mover: GetPerfectMover(), spinner: s}
-	case Max:
+	case Minimax:
 		return &AI{Mover: GetMinimaxMover(), spinner: s}
 	case Neural:
 		return &AI{Mover: GetNeuralMover(), spinner: s}
@@ -51,6 +51,9 @@ func NewAI(difficulty Difficulty) *AI {
 }
 
 func (a *AI) ChangeDifficulty(difficulty Difficulty) {
+	difficulty = min(difficulty, Neural)
+	difficulty = max(difficulty, Easy)
+
 	a.Difficulty = difficulty
 	a.Mover = NewAI(difficulty).Mover
 }
