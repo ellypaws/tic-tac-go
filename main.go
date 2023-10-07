@@ -2,13 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/charmbracelet/lipgloss"
-	"log"
-	"os"
-	"strings"
-
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/lrstanley/bubblezone"
+	"log"
+	"strings"
 )
 
 const (
@@ -77,6 +75,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 		m.Height = msg.Height
+		msg.Height -= 2
+		msg.Width -= 4
 		return m, nil
 	case tea.KeyMsg:
 		if msg.String() == "q" {
@@ -105,34 +105,37 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			}
 		}
-
-		winner := m.Board.Winner()
-		if winner != Empty || m.Board.IsFull() {
-			m.GameOver = true
-		}
-
 		return m, nil
 	case tea.MouseMsg:
-		if msg.Type == tea.MouseLeft {
-			for row := 0; row < 3; row++ {
-				for col := 0; col < 3; col++ {
-					cell := &m.Board.Cells[row][col]
-					if zone.Get(m.Board.Id + fmt.Sprintf("%d-%d", row, col)).InBounds(msg) {
-						if *cell == Empty {
-							*cell = m.Current
-							if m.Current == PlayerX {
-								m.Current = PlayerO
-							} else {
-								m.Current = PlayerX
-							}
-						} else {
-							m.ShowError = true
-							return m, nil
-						}
-					}
+		msg.Y += 11
+		for row := 0; row < 3; row++ {
+			for col := 0; col < 3; col++ {
+				z := zone.Get(m.Board.Id + fmt.Sprintf("%d-%d", row, col))
+				if z.InBounds(msg) {
+					m.Cursor.Row = row
+					m.Cursor.Col = col
 				}
 			}
 		}
+		winner := m.Board.Winner()
+		if winner != Empty || m.Board.IsFull() {
+			m.GameOver = true
+			return m, nil
+		}
+		if msg.Type == tea.MouseLeft {
+			if m.Board.Cells[m.Cursor.Col][m.Cursor.Row] == Empty {
+				m.Board.Cells[m.Cursor.Col][m.Cursor.Row] = m.Current
+				if m.Current == PlayerX {
+					m.Current = PlayerO
+				} else {
+					m.Current = PlayerX
+				}
+			} else {
+				m.ShowError = true
+				return m, nil
+			}
+		}
+		return m, nil
 	}
 	return m, nil
 }
@@ -164,7 +167,7 @@ func (m Model) View() string {
 	out.WriteString(fmt.Sprintf("[%v]:[%v] {%v:%v}\n", m.Cursor.Row, m.Cursor.Col, m.Width, m.Height))
 
 	for col := 0; col < 3; col++ {
-		rowItems := []string{}
+		var rowItems []string
 		for row := 0; row < 3; row++ {
 			//zoneID := fmt.Sprintf("%d-%d", row, col)
 
@@ -218,9 +221,7 @@ func (m Model) View() string {
 		lipgloss.WithWhitespaceChars("    ⭒"),
 		lipgloss.WithWhitespaceForeground(lipgloss.Color("#757575")),
 	)
-	//block = lipgloss.PlaceVertical(m.Height, lipgloss.Center, block)
 	out.WriteString(block)
-	//out.WriteString("\n\n")
 
 	return zone.Scan(out.String())
 }
@@ -235,10 +236,10 @@ func main() {
 		&m,
 		tea.WithAltScreen(),
 		tea.WithMouseCellMotion(),
+		tea.WithMouseAllMotion(),
 	)
 
 	if err, _ := p.Run(); err != nil {
 		log.Fatal(err)
-		os.Exit(1)
 	}
 }
