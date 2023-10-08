@@ -2,6 +2,7 @@ package ai
 
 import (
 	"github.com/charmbracelet/bubbles/spinner"
+	"tic-tac-toe/ai/neural"
 	"tic-tac-toe/board"
 )
 
@@ -44,7 +45,7 @@ func NewAI(difficulty Difficulty) *AI {
 	case Minimax:
 		return &AI{Mover: GetMinimaxMover(), spinner: s}
 	case Neural:
-		return &AI{Mover: GetNeuralMover(), spinner: s}
+		return &AI{Mover: neural.GetNeuralMover(), spinner: s}
 	default:
 		return &AI{Mover: GetRandomMover(), spinner: s}
 	}
