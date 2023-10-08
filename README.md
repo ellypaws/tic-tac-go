@@ -71,9 +71,8 @@ Mouse Controls (BubbleZone):
 <img src="https://go.dev/images/gophers/ladder.svg" width="48" alt="Go Gopher climbing a ladder." align="right">
 
 ## Todo
-
-- [ ] Implement AI for single-player mode
-- [ ] Difficulty levels for AI
+- [x] Implement AI for single-player mode
+- [x] Difficulty levels for AI
+- [ ] Neural network
 
 Enjoy the game and challenge your friends or the AI (coming soon) in this classic game of Tic-Tac-Toe!
-```
