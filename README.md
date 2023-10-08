@@ -1,6 +1,3 @@
-Here's your README.md file with keys similar to the example you provided:
-
-```md
 # Tic-Tac-Toe Game
 
 This is a simple command-line Tic-Tac-Toe game implemented in Go using the Bubble Tea framework, along with BubbleZone for mouse controls. You can play the game in your terminal with your keyboard or mouse.
