@@ -18,7 +18,9 @@ type Model struct {
 	ai            *ai.AI
 }
 
-func New() Model {
+type opts func(*Model)
+
+func New(options ...opts) Model {
 	var player board.Cell
 	start := rand.Int() % 2
 	if start == 0 {
@@ -26,10 +28,45 @@ func New() Model {
 	} else {
 		player = board.PlayerO
 	}
-	return Model{
-		Board:   board.NewBoard(),
-		Current: player,
-		help:    help.New(),
-		ai:      ai.NewAI(ai.Medium),
+	m := Model{
+		Board:    board.NewBoard(),
+		Current:  player,
+		gameOver: false,
+		help:     help.New(),
+		ai:       ai.NewAI(ai.Medium),
+	}
+	for _, option := range options {
+		option(&m)
+	}
+	return m
+}
+
+func WithAI(ai *ai.AI) opts {
+	return func(m *Model) {
+		m.ai = ai
+	}
+}
+
+func WithDifficulty(difficulty ai.Difficulty) opts {
+	return func(m *Model) {
+		m.ai.ChangeDifficulty(difficulty)
+	}
+}
+
+func WithStartPlayer(player board.Cell) opts {
+	return func(m *Model) {
+		m.Current = player
+	}
+}
+
+func WithWidth(width int) opts {
+	return func(m *Model) {
+		m.Width = width
+	}
+}
+
+func WithHeight(height int) opts {
+	return func(m *Model) {
+		m.Height = height
 	}
 }

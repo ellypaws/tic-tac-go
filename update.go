@@ -24,10 +24,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		keys := m.help.Keys
 		switch {
 		case key.Matches(msg, keys.Reset):
-			newModel := New()
-			newModel.Width = m.Width
-			newModel.Height = m.Height
+			newModel := New(
+				WithAI(m.ai),
+				WithDifficulty(m.ai.Difficulty),
+				WithStartPlayer(m.Current),
+				WithHeight(m.Height),
+				WithWidth(m.Width),
+			)
 			return &newModel, nil
+
+			//m.Board = board.NewBoard()
+			//m.gameOver = false
+			//return m, nil
 		case key.Matches(msg, keys.Up):
 			m.Cursor.Col = max(m.Cursor.Col-1, 0)
 		case key.Matches(msg, keys.Down):
