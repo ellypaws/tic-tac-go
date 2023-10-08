@@ -66,32 +66,40 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.help, _ = m.help.Update(msg)
 		return m, nil
 	case tea.MouseMsg:
-		for row := 0; row < 3; row++ {
-			for col := 0; col < 3; col++ {
-				z := zone.Get(m.Board.Id + fmt.Sprintf("%d-%d", row, col))
-				if z.InBounds(msg) {
-					m.Cursor.Row = row
-					m.Cursor.Col = col
-				}
-			}
-		}
-		if msg.Type == tea.MouseLeft {
-			if m.checkWinner() {
-				return m, nil
-			}
-			if m.Board.Cells[m.Cursor.Col][m.Cursor.Row] == board.Empty {
-				m.Board.Cells[m.Cursor.Col][m.Cursor.Row] = m.Current
-				m.swapPlayer()
-			} else {
-				m.invalidMove = true
-				return m, nil
-			}
-			if m.checkWinner() {
-				return m, nil
-			}
+		done := m.mouseUpdate(msg)
+		if done {
+			return m, nil
 		}
 	}
 	return m, nil
+}
+
+func (m *Model) mouseUpdate(msg tea.MouseMsg) bool {
+	for row := 0; row < 3; row++ {
+		for col := 0; col < 3; col++ {
+			z := zone.Get(m.Board.Id + fmt.Sprintf("%d-%d", row, col))
+			if z.InBounds(msg) {
+				m.Cursor.Row = row
+				m.Cursor.Col = col
+			}
+		}
+	}
+	if msg.Type == tea.MouseLeft {
+		if m.checkWinner() {
+			return true
+		}
+		if m.Board.Cells[m.Cursor.Col][m.Cursor.Row] == board.Empty {
+			m.Board.Cells[m.Cursor.Col][m.Cursor.Row] = m.Current
+			m.swapPlayer()
+		} else {
+			m.invalidMove = true
+			return true
+		}
+		if m.checkWinner() {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *Model) swapPlayer() {
